@@ -195,12 +195,13 @@
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            background-color: var(--text-primary); /* Dark bg for letterboxing */
         }
 
         #baby-photo, #current-photo {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* Ensures photo is not cropped */
             position: absolute;
             transition: opacity 0.7s ease-in-out;
         }
@@ -320,7 +321,8 @@
             width: 100%;
             height: auto;
             aspect-ratio: 1/1;
-            object-fit: cover;
+            object-fit: contain; /* Changed to contain to prevent cropping */
+            background-color: var(--text-secondary); /* Added a bg for letterboxing */
         }
         .final-card p {
             font-weight: 500;
@@ -438,85 +440,81 @@
         // --- DATA ---
         // Employee data. Replace with actual employee info and image URLs.
         // Image URLs must follow the format: https://kapilatgoogle.github.io/guess-the-baby-photo/<file-name>
- I have removed the extra spaces before the names. Here is the corrected JavaScript array.
-
-```javascript
-const employeeData = [
-    {
-        name: 'Raghav Dewan',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby12.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current12.png'
-    },
-    {
-        name: 'Aakriti Chhitwal',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby13.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current13.png'
-    },
-    {
-        name: 'Abhinay Potnuru',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby2.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current2.png'
-    },
-    {
-        name: 'Vidhi Popat',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby2.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current2.png'
-    },
-    {
-        name: 'Dushyant Sharma',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby3.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current3.png'
-    },
-    {
-        name: 'Aakansha Jain',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby1.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current1.png'
-    },
-    {
-        name: 'Mukil Nair',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby4.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current4.png'
-    },
-    {
-        name: 'Pallavi Bhatia',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby10.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current10.png'
-    },
-    {
-        name: 'Sandeep Sahu',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby8.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current8.png'
-    },
-    {
-        name: 'Mansi Gupta',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby11.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current11.png'
-    },
-    {
-        name: 'Raveesh Sahni',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby5.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current5.png'
-    },
-    {
-        name: 'Ankita Sinha',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby9.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current9.png'
-    },
-    {
-        name: 'Prateek Chandrasekara',
-        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby7.png',
-        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current7.png'
-    }
-];
-
-        const teamNames = ['Team A', 'Team B'];
+        const employeeData = [
+            {
+                name: 'Aakansha Jain',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby1.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current1.png'
+            },
+            {
+                name: 'Abhinay Potnuru',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby2.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current2.png'
+            },
+            {
+                name: 'Dushyant Sharma',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby3.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current3.png'
+            },
+            {
+                name: 'Mukil Nair',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby4.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current4.png'
+            },
+            {
+                name: 'Raveesh Sahni',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby5.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current5.png'
+            },
+            {
+                name: 'Vidhi Popat',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby6.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current6.png'
+            },
+            {
+                name: 'Prateek Chandrasekara',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby7.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current7.png'
+            },
+            {
+                name: 'Sandeep Sahu',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby8.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current8.png'
+            },
+            {
+                name: 'Ankita Sinha',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby9.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current9.png'
+            },
+            {
+                name: 'Pallavi Bhatia',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby10.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current10.png'
+            },
+            {
+                name: 'Mansi Gupta',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby11.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current11.png'
+            },
+            {
+                name: 'Raghav Dewan',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby12.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current12.png'
+            },
+            {
+                name: 'Aakriti Chhitwal',
+                babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby13.png',
+                currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current13.png'
+            }
+        ];
+        const teamNames = ['Team Alpha', 'Team Bravo'];
         const ROUND_TIME = 30; // seconds
 
         // --- GAME STATE ---
         let gameState = {
             currentScreen: 'splash',
             currentRound: 0,
-            shuffledEmployees: [],
+            shuffledEmployees: [], // This will be a copy of employeeData, in order
             scores: {},
             timer: null,
             timeLeft: ROUND_TIME,
@@ -669,8 +667,8 @@ const employeeData = [
         function startGame() {
             gameState.currentScreen = 'playing';
             gameState.currentRound = 0;
-            // Shuffle employees for a new game order each time
-            gameState.shuffledEmployees = [...employeeData].sort(() => Math.random() - 0.5);
+            // Use the employee data in the provided order
+            gameState.shuffledEmployees = [...employeeData];
             // Reset scores
             teamNames.forEach(name => gameState.scores[name] = 0);
             
@@ -752,6 +750,9 @@ const employeeData = [
                     winners.push(team);
                 }
             }
+            
+            if (maxScore === 0) return "Everyone!"; // Handle no-score case
+            
             return winners.join(' & ');
         }
 
@@ -808,3 +809,4 @@ const employeeData = [
     </script>
 </body>
 </html>
+
