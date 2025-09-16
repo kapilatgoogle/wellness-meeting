@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Baby Photo Game</title>
+    
+    <!-- Google Fonts: Google Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <style>
+        /* --- Base Styles & Variables --- */
+        :root {
+            --blue: #4285F4;
+            --red: #DB4437;
+            --yellow: #F4B400;
+            --green: #0F9D58;
+            --bg-neutral: #f1f3f4;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --white: #ffffff;
+
+            --font-family: 'Google Sans', sans-serif;
+            --font-size-base: calc(10px + 1vmin); /* Responsive font size */
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--text-primary);
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Game Container & Scaling --- */
+        #game-container {
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            background-color: var(--bg-neutral);
+            overflow: hidden;
+            position: relative;
+            font-size: var(--font-size-base);
+            
+            /* Enforce 16:9 aspect ratio */
+            aspect-ratio: 16 / 9;
+        }
+        
+        /* --- UI Components --- */
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5em;
+            min-height: 48px;
+            padding: 0 1.5em;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            color: var(--white);
+            background-color: var(--blue);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .button:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .button:active {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+
+        .button:focus-visible {
+            outline: 3px solid var(--blue);
+            outline-offset: 2px;
+        }
+        
+        .button.secondary {
+            background-color: var(--text-secondary);
+        }
+        .button.red { background-color: var(--red); }
+        .button.green { background-color: var(--green); }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 1.5em;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Screen Layouts --- */
+        .screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2em;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .screen h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 0.25em;
+            color: var(--text-primary);
+        }
+        
+        .screen h2 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+            color: var(--text-secondary);
+        }
+
+        .screen p {
+            max-width: 60ch;
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 1.5em;
+            color: var(--text-secondary);
+        }
+
+        /* Instructions Screen Specifics */
+        .instructions-list {
+            text-align: left;
+            display: inline-block;
+            margin-bottom: 2em;
+        }
+        .instructions-list li {
+             list-style-type: none;
+             margin-bottom: 1em;
+             display: flex;
+             align-items: center;
+             gap: 1em;
+             font-size: 1.2em;
+        }
+
+        /* Game Screen Layout */
+        #game-screen-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            width: 100%;
+            height: 100%;
+            padding: 1.5em;
+            gap: 1.5em;
+            grid-template-areas:
+                "header leaderboard"
+                "main   leaderboard"
+                "footer footer";
+        }
+        
+        #game-header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        #main-content { grid-area: main; position: relative; display: flex; justify-content: center; align-items: center; }
+        #leaderboard { grid-area: leaderboard; }
+        #game-footer { grid-area: footer; }
+        
+        /* Photo Display */
+        #photo-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        #baby-photo, #current-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            transition: opacity 0.7s ease-in-out;
+        }
+
+        #reveal-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: var(--white);
+            padding: 3em 1em 1em;
+            text-align: center;
+            transform: translateY(100%);
+            transition: transform 0.5s ease-in-out;
+        }
+
+        #reveal-overlay.revealed {
+            transform: translateY(0);
+        }
+
+        #employee-name {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        /* Timer */
+        #timer-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        #timer-bar {
+            width: 10em;
+            height: 0.5em;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #timer-progress {
+            width: 100%;
+            height: 100%;
+            background-color: var(--green);
+            transition: width 1s linear;
+        }
+
+        /* Leaderboard */
+        #leaderboard {
+            background-color: var(--white);
+            padding: 1em;
+            border-radius: 16px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        #leaderboard h2 {
+            text-align: center;
+            margin-bottom: 1em;
+            font-size: 1.5em;
+        }
+        .team-score {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75em;
+            font-size: 1.2em;
+        }
+        .team-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+        .score-btn {
+            background: var(--bg-neutral);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        .score-btn:hover { background: #e0e0e0; }
+        .score-btn.plus { color: var(--green); }
+        .score-btn.minus { color: var(--red); }
+
+        /* Footer / Host Controls */
+        #game-footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1em;
+        }
+
+        /* Final Reveal Screen */
+        #final-reveal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1em;
+            width: 100%;
+            max-width: 90%;
+            margin-bottom: 2em;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        .final-card {
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .final-card img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+        }
+        .final-card p {
+            font-weight: 500;
+            padding: 0.5em;
+            font-size: 1em;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        /* Top Bar Controls */
+        #top-bar-controls {
+            position: absolute;
+            top: 1em;
+            right: 1em;
+            z-index: 100;
+            display: flex;
+            gap: 0.5em;
+        }
+        .icon-button {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .icon-button:hover { background-color: var(--white); }
+        
+        /* Pause Overlay */
+        #pause-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0,0,0,0.7);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+        }
+
+        /* --- Responsiveness for smaller screens --- */
+        @media (max-width: 800px), (max-height: 500px) {
+            .screen h1 {
+                font-size: 2.8em;
+            }
+             .screen h2 {
+                font-size: 1.8em;
+            }
+            .screen p {
+                font-size: 1.1em;
+            }
+
+            #game-screen-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto;
+                grid-template-areas:
+                    "header"
+                    "main"
+                    "leaderboard"
+                    "footer";
+                padding: 1em;
+                gap: 1em;
+            }
+
+            #leaderboard {
+                max-height: 30vh;
+                overflow-y: auto;
+                padding: 0.75em;
+            }
+            
+            #leaderboard h2 {
+                 font-size: 1.3em;
+            }
+            
+            .team-score {
+                font-size: 1em;
+            }
+
+            #employee-name {
+                font-size: 2em;
+            }
+
+            #timer-container {
+                font-size: 1.5em;
+            }
+            
+            #final-reveal-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.5em;
+            }
+
+            .button {
+                min-height: 44px;
+                font-size: 1em;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <main id="game-container">
+        <!-- Game content will be dynamically injected here -->
+    </main>
+
+    <script>
+        // --- DATA ---
+        // Employee data. Replace with actual employee info and image URLs.
+        // Image URLs must follow the format: https://kapilatgoogle.github.io/guess-the-baby-photo/<file-name>
+ I have removed the extra spaces before the names. Here is the corrected JavaScript array.
+
+```javascript
+const employeeData = [
+    {
+        name: 'Raghav Dewan',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby12.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current12.png'
+    },
+    {
+        name: 'Aakriti Chhitwal',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby13.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current13.png'
+    },
+    {
+        name: 'Abhinay Potnuru',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby2.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current2.png'
+    },
+    {
+        name: 'Vidhi Popat',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby2.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current2.png'
+    },
+    {
+        name: 'Dushyant Sharma',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby3.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current3.png'
+    },
+    {
+        name: 'Aakansha Jain',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby1.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current1.png'
+    },
+    {
+        name: 'Mukil Nair',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby4.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current4.png'
+    },
+    {
+        name: 'Pallavi Bhatia',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby10.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current10.png'
+    },
+    {
+        name: 'Sandeep Sahu',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby8.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current8.png'
+    },
+    {
+        name: 'Mansi Gupta',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby11.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current11.png'
+    },
+    {
+        name: 'Raveesh Sahni',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby5.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current5.png'
+    },
+    {
+        name: 'Ankita Sinha',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby9.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current9.png'
+    },
+    {
+        name: 'Prateek Chandrasekara',
+        babyPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/baby7.png',
+        currentPhoto: 'https://kapilatgoogle.github.io/wellness-meeting/current7.png'
+    }
+];
+
+        const teamNames = ['Team A', 'Team B'];
+        const ROUND_TIME = 30; // seconds
+
+        // --- GAME STATE ---
+        let gameState = {
+            currentScreen: 'splash',
+            currentRound: 0,
+            shuffledEmployees: [],
+            scores: {},
+            timer: null,
+            timeLeft: ROUND_TIME,
+            isMuted: false,
+            isPaused: false,
+        };
+
+        // --- DOM ELEMENTS ---
+        const gameContainer = document.getElementById('game-container');
+        
+        // --- AUDIO ---
+        const audio = {
+            backgroundMusic: new Audio('https://kapildoesmarketing.github.io/guess-the-baby-photo/background-music.mp3'),
+            timerTick: new Audio('https://kapildoesmarketing.github.io/guess-the-baby-photo/timer-tick.mp3'),
+            roundEnd: new Audio('https://kapildoesmarketing.github.io/guess-the-baby-photo/reveal-sound.mp3')
+        };
+        audio.backgroundMusic.loop = true;
+
+        // --- TEMPLATES (HTML for each screen) ---
+        
+        const templates = {
+            splashScreen: () => `
+                <div class="screen">
+                    <h1>Guess the Baby Photo!</h1>
+                    <p>Get ready to guess your colleagues from their adorable baby pictures.</p>
+                    <button id="start-game-btn" class="button">Start Game</button>
+                </div>
+            `,
+            
+            instructionsScreen: () => `
+                <div class="screen">
+                    <h2>How to Play</h2>
+                    <ul class="instructions-list">
+                       <li><span class="material-symbols-outlined">image</span>A baby photo will be shown on the screen.</li>
+                       <li><span class="material-symbols-outlined">timer</span>You'll have ${ROUND_TIME} seconds to guess who it is!</li>
+                       <li><span class="material-symbols-outlined">groups</span>Shout out your guess. The host will award points.</li>
+                       <li><span class="material-symbols-outlined">celebration</span>The team with the most points wins bragging rights!</li>
+                    </ul>
+                    <button id="play-game-btn" class="button green">Let's Play!</button>
+                </div>
+            `,
+
+            gameScreen: (employee) => `
+                ${commonUI()}
+                <div id="game-screen-layout">
+                    <header id="game-header">
+                        <div id="timer-container">
+                            <span class="material-symbols-outlined">timer</span>
+                            <span id="timer-display">${ROUND_TIME}</span>
+                            <div id="timer-bar"><div id="timer-progress"></div></div>
+                        </div>
+                    </header>
+                    <main id="main-content">
+                        <div id="photo-container">
+                            <img id="baby-photo" src="${employee.babyPhoto}" alt="Baby photo">
+                            <img id="current-photo" src="${employee.currentPhoto}" alt="Current photo of ${employee.name}" style="opacity: 0;">
+                             <div id="reveal-overlay">
+                                <span id="employee-name">${employee.name}</span>
+                            </div>
+                        </div>
+                    </main>
+                    <aside id="leaderboard">
+                        <h2>Leaderboard</h2>
+                        <div id="scores-container">
+                            ${teamNames.map(name => `
+                                <div class="team-score">
+                                    <span>${name}</span>
+                                    <div class="team-controls">
+                                        <button class="score-btn minus" data-team="${name}">-</button>
+                                        <span class="score" id="score-${name.replace(' ','')}">${gameState.scores[name]}</span>
+                                        <button class="score-btn plus" data-team="${name}">+</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </aside>
+                    <footer id="game-footer">
+                        <button id="reveal-btn" class="button yellow">Reveal Answer</button>
+                        <button id="next-btn" class="button hidden">Next Photo</button>
+                    </footer>
+                </div>
+            `,
+            
+            finalScreen: () => `
+                <div class="screen">
+                    <h1>And the winner is...</h1>
+                    <h2>${getWinner()}</h2>
+                    <p>Here's a look back at everyone!</p>
+                    <div id="final-reveal-grid">
+                        ${gameState.shuffledEmployees.map(e => `
+                            <div class="final-card">
+                                <img src="${e.babyPhoto}" alt="Baby ${e.name}">
+                                <p>${e.name}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button id="play-again-btn" class="button">Play Again</button>
+                </div>
+            `
+        };
+        
+        const commonUI = () => `
+            <div id="top-bar-controls">
+                <button id="pause-btn" class="icon-button" aria-label="Pause">
+                    <span class="material-symbols-outlined">pause</span>
+                </button>
+                <button id="mute-btn" class="icon-button" aria-label="Mute">
+                    <span class="material-symbols-outlined">${gameState.isMuted ? 'volume_off' : 'volume_up'}</span>
+                </button>
+            </div>
+             <div id="pause-overlay" class="hidden">
+                <h1>Paused</h1>
+                <p style="font-size: 1.2em; margin-top: 1em;">Click anywhere or press 'P' to resume</p>
+            </div>
+        `;
+        
+        // --- RENDER & LOGIC ---
+
+        function render(templateFn, ...args) {
+            gameContainer.innerHTML = templateFn(...args);
+            addEventListeners();
+        }
+
+        function addEventListeners() {
+            // Screen-specific listeners
+            document.getElementById('start-game-btn')?.addEventListener('click', showInstructions);
+            document.getElementById('play-game-btn')?.addEventListener('click', startGame);
+            document.getElementById('play-again-btn')?.addEventListener('click', init);
+            
+            // Game screen listeners
+            document.getElementById('reveal-btn')?.addEventListener('click', revealAnswer);
+            document.getElementById('next-btn')?.addEventListener('click', nextRound);
+            document.querySelectorAll('.score-btn').forEach(btn => btn.addEventListener('click', updateScore));
+            
+            // Common UI listeners
+            document.getElementById('pause-btn')?.addEventListener('click', togglePause);
+            document.getElementById('mute-btn')?.addEventListener('click', toggleMute);
+            document.getElementById('pause-overlay')?.addEventListener('click', togglePause);
+        }
+
+        function showInstructions() {
+            gameState.currentScreen = 'instructions';
+            render(templates.instructionsScreen);
+            // Play audio on first user interaction
+            if (!gameState.isMuted) {
+                audio.backgroundMusic.play().catch(e => console.error("Audio play failed:", e));
+            }
+        }
+
+        function startGame() {
+            gameState.currentScreen = 'playing';
+            gameState.currentRound = 0;
+            // Shuffle employees for a new game order each time
+            gameState.shuffledEmployees = [...employeeData].sort(() => Math.random() - 0.5);
+            // Reset scores
+            teamNames.forEach(name => gameState.scores[name] = 0);
+            
+            startRound();
+        }
+
+        function startRound() {
+            const employee = gameState.shuffledEmployees[gameState.currentRound];
+            render(templates.gameScreen, employee);
+            startTimer();
+        }
+        
+        function nextRound() {
+            gameState.currentRound++;
+            if (gameState.currentRound >= gameState.shuffledEmployees.length) {
+                endGame();
+            } else {
+                startRound();
+            }
+        }
+
+        function revealAnswer() {
+            clearInterval(gameState.timer);
+            if (!gameState.isMuted) audio.roundEnd.play();
+
+            document.getElementById('current-photo').style.opacity = '1';
+            document.getElementById('baby-photo').style.opacity = '0';
+            document.getElementById('reveal-overlay').classList.add('revealed');
+            
+            document.getElementById('reveal-btn').classList.add('hidden');
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+        
+        function endGame() {
+            gameState.currentScreen = 'final';
+            render(templates.finalScreen);
+        }
+        
+        function startTimer() {
+            gameState.timeLeft = ROUND_TIME;
+            const timerDisplay = document.getElementById('timer-display');
+            const timerProgress = document.getElementById('timer-progress');
+            
+            gameState.timer = setInterval(() => {
+                if (gameState.isPaused) return;
+
+                gameState.timeLeft--;
+                timerDisplay.textContent = gameState.timeLeft;
+                timerProgress.style.width = `${(gameState.timeLeft / ROUND_TIME) * 100}%`;
+                
+                if (gameState.timeLeft <= 10) {
+                     if (!gameState.isMuted) audio.timerTick.play();
+                }
+
+                if (gameState.timeLeft <= 0) {
+                    revealAnswer();
+                }
+            }, 1000);
+        }
+
+        function updateScore(e) {
+            const team = e.target.dataset.team;
+            if (e.target.classList.contains('plus')) {
+                gameState.scores[team]++;
+            } else if (gameState.scores[team] > 0) {
+                gameState.scores[team]--;
+            }
+            document.getElementById(`score-${team.replace(' ','')}`).textContent = gameState.scores[team];
+        }
+        
+        function getWinner() {
+            let maxScore = -1;
+            let winners = [];
+            for (const team in gameState.scores) {
+                if (gameState.scores[team] > maxScore) {
+                    maxScore = gameState.scores[team];
+                    winners = [team];
+                } else if (gameState.scores[team] === maxScore) {
+                    winners.push(team);
+                }
+            }
+            return winners.join(' & ');
+        }
+
+        function toggleMute() {
+            gameState.isMuted = !gameState.isMuted;
+            const icon = document.querySelector('#mute-btn .material-symbols-outlined');
+            if (gameState.isMuted) {
+                audio.backgroundMusic.pause();
+                icon.textContent = 'volume_off';
+            } else {
+                audio.backgroundMusic.play().catch(e => console.error("Audio play failed:", e));
+                icon.textContent = 'volume_up';
+            }
+        }
+        
+        function togglePause() {
+            gameState.isPaused = !gameState.isPaused;
+            const overlay = document.getElementById('pause-overlay');
+            const icon = document.querySelector('#pause-btn .material-symbols-outlined');
+            if(gameState.isPaused) {
+                overlay.classList.remove('hidden');
+                icon.textContent = 'play_arrow';
+                audio.backgroundMusic.pause();
+            } else {
+                overlay.classList.add('hidden');
+                icon.textContent = 'pause';
+                if(!gameState.isMuted) audio.backgroundMusic.play();
+            }
+        }
+
+        // --- Keyboard Controls ---
+        function handleKeyPress(e) {
+            if (e.key.toLowerCase() === 'p' && gameState.currentScreen === 'playing') {
+                togglePause();
+            }
+        }
+        
+        // --- Initialization ---
+        function init() {
+            // Preload images for smoother transitions
+            employeeData.forEach(e => {
+                new Image().src = e.babyPhoto;
+                new Image().src = e.currentPhoto;
+            });
+            
+            gameState.currentScreen = 'splash';
+            if(gameState.timer) clearInterval(gameState.timer);
+            render(templates.splashScreen);
+        }
+
+        window.addEventListener('keydown', handleKeyPress);
+        window.addEventListener('load', init);
+
+    </script>
+</body>
+</html>
