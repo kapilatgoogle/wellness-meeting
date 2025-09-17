@@ -1,1 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess Who? - Fun Fact Edition</title>
+    
+    <!-- Import Google Sans Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Import Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <style>
+        /* --- 1. Root Variables and Resets --- */
+        :root {
+            --font-family: 'Google Sans', sans-serif;
+            --bg-color: #f1f3f4;
+            --text-color: #202124;
+            --secondary-text: #5f6368;
+            --white: #ffffff;
+            
+            /* Material Design Action Colors */
+            --blue: #4285F4;
+            --red: #DB4437;
+            --yellow: #F4B400;
+            --green: #0F9D58;
+            
+            /* Base resolution for 16:9 */
+            --base-width: 1020px;
+            --base-height: 580px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            font-family: var(--font-family);
+            background-color: #000; /* Letterbox color */
+            
+            /* Center the game container */
+            display: grid;
+            place-items: center;
+        }
+
+        /* --- 2. 16:9 Responsive Container --- */
+        #game-container {
+            width: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            aspect-ratio: 16 / 9;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            position: relative;
+            container-type: inline-size;
+        }
+
+        /* --- CSS SYNTAX FIX: Moved @media queries to be global --- */
+        @media (min-aspect-ratio: 16/9) {
+            #game-container {
+                height: 100vh;
+                width: auto;
+            }
+        }
+        @media (max-aspect-ratio: 16/9) {
+            #game-container {
+                width: 100vw;
+                height: auto;
+            }
+        }
+
+
+        /* --- 3. Typography Scaling --- */
+        h1 {
+            font-size: clamp(28px, 5cqi, 54px);
+            font-weight: 700;
+            margin-bottom: 0.25em;
+        }
+        
+        h2 {
+            font-size: clamp(24px, 3.5cqi, 44px);
+            font-weight: 700;
+            margin-bottom: 0.5em;
+        }
+        
+        h3 {
+            font-size: clamp(20px, 2.5cqi, 36px);
+            font-weight: 500;
+            color: var(--secondary-text);
+        }
+
+        p {
+            font-size: clamp(16px, 1.8cqi, 24px);
+            line-height: 1.5;
+            max-width: 40em;
+        }
+        
+        /* --- 4. Material Design Buttons --- */
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 1.5em;
+            font-family: var(--font-family);
+            font-size: clamp(16px, 1.6cqi, 20px);
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            -webkit-tap-highlight-color: transparent; /* For touch */
+        }
+
+        .button:hover {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .button:active {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transform: translateY(1px);
+        }
+
+        .button:focus-visible {
+            outline: 3px solid var(--blue);
+            outline-offset: 2px;
+        }
+
+        .button-primary {
+            background-color: var(--blue);
+            color: var(--white);
+        }
+        .button-primary:hover {
+            background-color: #3a7de8;
+        }
+
+        .button-secondary {
+            background-color: var(--green);
+            color: var(--white);
+        }
+        .button-secondary:hover {
+            background-color: #0d8c4d;
+        }
+        
+        .icon-button {
+            background: var(--white);
+            color: var(--secondary-text);
+            padding: 0;
+            min-width: 48px;
+            min-height: 48px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+        }
+        .icon-button:hover {
+             background-color: #f8f9fa;
+        }
+        .icon-button .material-symbols-outlined {
+            font-size: clamp(24px, 2.2cqi, 30px);
+            font-variation-settings: 'FILL' 0;
+        }
+
+        /* --- 5. Screen Management --- */
+        .screen {
+            width: 100%;
+            height: 100%;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2.5em; /* Scalable padding */
+            text-align: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* --- 6. Specific Screen Styles --- */
+
+        /* Splash & Instructions */
+        /* (No changes) */
+
+        /* Game Screen */
+        #game-screen {
+            display: grid;
+            grid-template-rows: auto 1fr auto; /* HUD, Content, Controls */
+            height: 100%;
+            width: 100%;
+            padding: clamp(16px, 1.5cqi, 24px);
+            gap: clamp(16px, 1.5cqi, 24px);
+            justify-content: center;
+        }
+        
+        /* HUD (Scores) */
+        #game-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            font-size: clamp(20px, 2.5cqi, 36px);
+            font-weight: 700;
+        }
+        #team-a-score { color: var(--blue); }
+        #team-b-score { color: var(--red); }
+        #turn-info {
+            font-size: clamp(16px, 1.8cqi, 24px);
+            font-weight: 500;
+            color: var(--text-color);
+            padding: 0.5em 1.25em;
+            background: var(--white);
+            border-radius: 99px; /* Pill shape */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Game Content (Fact/Answer) */
+        #game-content {
+            display: grid; /* Stacks fact and answer views */
+            grid-template-areas: "content";
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        #fact-view, #answer-view {
+            grid-area: content;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2em;
+            text-align: center;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        #fact-view.hidden, #answer-view.hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        #fact-text {
+            font-size: clamp(22px, 3cqi, 40px);
+            font-weight: 500;
+            color: var(--text-color);
+            margin: 1em 0 1.5em;
+            max-width: 80%;
+            line-height: 1.4;
+        }
+
+        #answer-view img {
+            width: clamp(120px, 20cqi, 250px);
+            height: clamp(120px, 20cqi, 250px);
+            border-radius: 50%;
+            object-fit: cover;
+            border: 0.5em solid var(--white);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: opacity 0.3s ease-in-out;
+            opacity: 1;
+        }
+        
+        #answer-view img.loading {
+            opacity: 0;
+        }
+        
+        #answer-view h2 {
+            font-size: clamp(28px, 4cqi, 48px);
+            margin: 0.5em 0 0.1em;
+        }
+        #answer-view p {
+            font-size: clamp(18px, 2cqi, 28px);
+            color: var(--secondary-text);
+            font-weight: 500;
+        }
+        
+        #host-controls {
+            margin-top: 1.5em;
+            display: flex;
+            gap: 1.5em;
+        }
+        .host-button {
+            font-size: clamp(28px, 3.5cqi, 44px);
+            padding: 0.5em;
+            border-radius: 50%;
+            border: none;
+            color: var(--white);
+            width: 2em;
+            height: 2em;
+            min-height: 0; /* Override .button */
+        }
+        .host-button .material-symbols-outlined {
+            font-size: 1em; /* Inherit from button */
+            font-variation-settings: 'FILL' 1;
+        }
+        #correct-button { background-color: var(--green); }
+        #wrong-button { background-color: var(--red); }
+        #correct-button:hover { background-color: #0d8c4d; }
+        #wrong-button:hover { background-color: #c5392d; }
+
+        /* Game Controls (Pause/Mute) */
+        #game-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1em;
+            position: absolute;
+            bottom: clamp(16px, 1.5cqi, 24px);
+            right: clamp(16px, 1.5cqi, 24px);
+        }
+
+        /* --- CSS FIX: Changed Pause & Game Over to be true overlays --- */
+        #pause-overlay, #game-over-screen {
+            background-color: rgba(32, 33, 36, 0.9);
+            color: var(--white);
+            z-index: 100;
+            
+            /* These lines make them overlays */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <main id="game-container">
+
+        <!-- Splash Screen -->
+        <section id="splash-screen" class="screen active">
+            <h1>Guess Who!</h1>
+            <h3>Team Fun Facts Edition</h3>
+            <button id="start-button" class="button button-primary">Start Game</button>
+        </section>
+
+        <!-- Instructions Screen -->
+        <section id="instructions-screen" class="screen">
+            <h2>How to Play</h2>
+            <ul>
+                <li>Team A and Team B will take turns guessing.</li>
+                <li>A fun fact about a member of the *other* team will be shown.</li>
+                <li>The guessing team tries to guess who it is!</li>
+                <li>The host will reveal the answer and award points.</li>
+            </ul>
+            <p><strong>Host Controls:</strong> (P)ause, (R)eveal, (C)orrect, (W)rong, (End Game)</p>
+            <button id="play-button" class="button button-primary">Let's Play!</button>
+        </section>
+
+        <!-- Game Screen -->
+        <!-- This screen will now STAY active at the end, and the pop-up will appear on top -->
+        <section id="game-screen" class="screen">
+            
+            <header id="game-hud">
+                <div id="team-a-score">Team A: 0</div>
+                <div id="turn-info">Team A's Turn</div>
+                <div id="team-b-score">Team B: 0</div>
+            </header>
+
+            <div id="game-content">
+                
+                <div id="fact-view">
+                    <h3>Fun Fact:</h3>
+                    <p id="fact-text">This person can spin any flat surface on their finger, from books to laptops!</p>
+                    <button id="reveal-button" class="button button-secondary">Reveal Answer (R)</button>
+                </div>
+                
+                <div id="answer-view" class="hidden">
+                    <img id="participant-image" src="https://placehold.co/300x300/f1f3f4/202124?text=Image" alt="Participant Photo">
+                    <h2 id="participant-name">Participant Name</h2>
+                    <p id="participant-team">Team A/B</p>
+                    <div id="host-controls">
+                        <button id="correct-button" class="button host-button" title="Correct Guess (C)">
+                            <span class="material-symbols-outlined">check_circle</span>
+                        </button>
+                        <button id="wrong-button" class="button host-button" title="Wrong Guess (W)">
+                            <span class="material-symbols-outlined">cancel</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="game-controls">
+                <button id="pause-button" class="icon-button" title="Pause (P)">
+                    <span class="material-symbols-outlined">pause</span>
+                </button>
+                <button id="end-game-button" class="icon-button" title="End Game" style="color: var(--red);">
+                    <span class="material-symbols-outlined">flag</span>
+                </button>
+                <button id="mute-button" class="icon-button" title="Mute Audio">
+                    <span class="material-symbols-outlined">volume_up</span>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Pause Overlay -->
+        <!-- This is now a pop-up overlay -->
+        <section id="pause-overlay" class="screen">
+            <h2>Paused</h2>
+            <button id="resume-button" class="button button-primary">Resume (P)</button>
+        </section>
+
+        <!-- Game Over Screen -->
+        <!-- This is now a pop-up overlay -->
+        <section id="game-over-screen" class="screen">
+            <h2 id="winner-text">Team A Wins!</h2>
+            <h3>Final Scores:</h3>
+            <p>
+                <span id="final-score-a-label">Team A:</span>
+                <span id="final-score-a">0</span>
+            </p>
+            <p>
+                <span id="final-score-b-label">Team B:</span>
+                <span id="final-score-b">0</span>
+            </p>
+            <button id="play-again-button" class="button button-primary">Play Again</button>
+        </section>
+
+    </main>
+
+    <!-- Audio Elements -->
+    <audio id="bg-music" loop src="https://kapildoesmarketing.github.io/guess-who-game/upbeat-music.mp3" preload="auto"></audio>
+    <audio id="correct-sfx" src="https://kapildoesmarketing.github.io/guess-who-game/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-sfx" src="https://kapildoesmarketing.github.io/guess-who-game/wrong.mp3" preload="auto"></audio>
+    <audio id="reveal-sfx" src="https://kapildoesmarketing.github.io/guess-who-game/reveal.mp3" preload="auto"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 1. Constants ---
+
+            const PARTICIPANTS = [
+                { name: "Aakansha Jain", image: "https://kapilatgoogle.github.io/wellness-meeting/current1.png", team: "A", fact: "An anime lover" },
+                { name: "Abhinay Potnuru", image: "https://kapilatgoogle.github.io/wellness-meeting/current2.png", team: "B", fact: "The last time I wished for something to god was 20 years ago - to help India win against West Indies with 4 runs to win on one ball" },
+                { name: "Dushyant Sharma", image: "https://kapilatgoogle.github.io/wellness-meeting/current3.png", team: "A", fact: "Is a movie buff and uses them as refrences in middle of conversations" },
+                { name: "Mukil Nair", image: "https://kapilatgoogle.github.io/wellness-meeting/current4.png", team: "B", fact: "Can sing breathless" },
+                { name: "Prateek Chandrasekara", image: "https://kapilatgoogle.github.io/wellness-meeting/current7.png", team: "A", fact: "I can do wheelies with a motorcycle" },
+                { name: "Sandeep Sahu", image: "https://kapilatgoogle.github.io/wellness-meeting/current8.png", team: "B", fact: "Can spin any flat surface on my finger from books to laptops :P" },
+                { name: "Ankita Sinha", image: "https://kapilatgoogle.github.io/wellness-meeting/current9.png", team: "A", fact: "I can make some crazy balloon arches for backdrop decorations for any kinda party" },
+                { name: "Pallavi Bhatia", image: "https://kapilatgoogle.github.io/wellness-meeting/current10.png", team: "B", fact: "I have a twin" },
+                { name: "Mansi Gupta", image: "https://kapilatgoogle.github.io/wellness-meeting/current11.png", team: "A", fact: "I can ride a horse pretty well" },
+                { name: "Raghav Dewan", image: "https://kapilatgoogle.github.io/wellness-meeting/current12.png", team: "B", fact: "I have played at a casino for 27 hours straight" },
+                { name: "Aakriti Chhitwal", image: "https://kapilatgoogle.github.io/wellness-meeting/current13.png", team: "A", fact: "Fond of folk painting" },
+                { name: "Vedika Gupta", image: "https://kapilatgoogle.github.io/wellness-meeting/current14.png", team: "B", fact: "Never learned how to ride a bike" },
+                { name: "Samarth Gautam", image: "https://kapilatgoogle.github.io/wellness-meeting/current16.png", team: "B", fact: "Someone who had blonde hair as a kid" }
+            ];
+
+            // --- 2. DOM Elements ---
+
+            const dom = {
+                screens: {
+                    splash: document.getElementById('splash-screen'),
+                    instructions: document.getElementById('instructions-screen'),
+                    game: document.getElementById('game-screen'),
+                    pause: document.getElementById('pause-overlay'),
+                    gameover: document.getElementById('game-over-screen')
+                },
+                buttons: {
+                    start: document.getElementById('start-button'),
+                    play: document.getElementById('play-button'),
+                    reveal: document.getElementById('reveal-button'),
+                    correct: document.getElementById('correct-button'),
+                    wrong: document.getElementById('wrong-button'),
+                    pause: document.getElementById('pause-button'),
+                    resume: document.getElementById('resume-button'),
+                    mute: document.getElementById('mute-button'),
+                    playAgain: document.getElementById('play-again-button'),
+                    endGame: document.getElementById('end-game-button')
+                },
+                game: {
+                    teamAScore: document.getElementById('team-a-score'),
+                    teamBScore: document.getElementById('team-b-score'),
+                    turnInfo: document.getElementById('turn-info'),
+                    factView: document.getElementById('fact-view'),
+                    answerView: document.getElementById('answer-view'),
+                    factText: document.getElementById('fact-text'),
+                    participantImage: document.getElementById('participant-image'),
+                    participantName: document.getElementById('participant-name'),
+                    participantTeam: document.getElementById('participant-team')
+                },
+                gameover: {
+                    winnerText: document.getElementById('winner-text'),
+                    finalScoreA: document.getElementById('final-score-a'),
+                    finalScoreB: document.getElementById('final-score-b')
+                },
+                audio: {
+                    bgMusic: document.getElementById('bg-music'),
+                    correctSfx: document.getElementById('correct-sfx'),
+                    wrongSfx: document.getElementById('wrong-sfx'),
+                    revealSfx: document.getElementById('reveal-sfx')
+                }
+            };
+
+            // --- 3. Game State (Rewritten for Simplicity) ---
+
+            const gameState = {
+                scores: { A: 0, B: 0 },
+                gameDeck: [], // A single deck of all turns
+                currentTurnIndex: 0,
+                currentFact: null, // Stores the *answer* object for the current fact
+                isPaused: false,
+                isMuted: false,
+                currentScreen: 'splash',
+                isGuessPending: false,
+                isGameOver: false,
+            };
+
+            // --- 4. Helper Functions ---
+
+            /**
+             * Shows a specific screen by ID and hides all others.
+             * This is now ONLY used for the main screens, not overlays.
+             * @param {string} screenId - The key of the screen to show (e.g., 'splash', 'game').
+             */
+            function showScreen(screenId) {
+                console.log(`showScreen called for: ${screenId}`);
+                gameState.currentScreen = screenId;
+                
+                // Hide all *main* screens
+                dom.screens.splash.classList.remove('active');
+                dom.screens.instructions.classList.remove('active');
+                dom.screens.game.classList.remove('active');
+
+                // Show the one we want
+                if (dom.screens[screenId]) {
+                    dom.screens[screenId].classList.add('active');
+                }
+            }
+            
+            // --- No changes to shuffleArray, playAudio, loadAudio ---
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+            function playAudio(audioEl) {
+                if (!gameState.isMuted) {
+                    audioEl.currentTime = 0;
+                    audioEl.play().catch(e => console.warn("Audio play failed:", e.message));
+                }
+            }
+            function loadAudio() {
+                try {
+                    Object.values(dom.audio).forEach(audio => audio.load());
+                } catch (e) {
+                    console.warn("Could not load audio assets.", e.message);
+                }
+            }
+            // --- End of no-change section ---
+
+
+            // --- 5. Core Game Logic (Rewritten) ---
+
+            /**
+             * Initializes the game by loading audio and attaching all event listeners.
+             */
+            function init() {
+                loadAudio();
+            
+                // Screen transitions
+                dom.buttons.start.addEventListener('click', () => showScreen('instructions'));
+                dom.buttons.play.addEventListener('click', startGame);
+                dom.buttons.playAgain.addEventListener('click', startGame);
+
+                // In-game actions
+                dom.buttons.reveal.addEventListener('click', revealAnswer);
+                dom.buttons.correct.addEventListener('click', () => handleGuess(true));
+                dom.buttons.wrong.addEventListener('click', () => handleGuess(false));
+                
+                // Controls
+                dom.buttons.pause.addEventListener('click', togglePause);
+                dom.buttons.resume.addEventListener('click', togglePause);
+                dom.buttons.mute.addEventListener('click', toggleMute);
+                dom.buttons.endGame.addEventListener('click', endGame);
+
+                document.addEventListener('keydown', handleKeydown);
+                
+                // Set up a fallback for missing images
+                dom.game.participantImage.onerror = () => {
+                    dom.game.participantImage.src = `https://placehold.co/300x300/f1f3f4/202124?text=Image+Missing`;
+                    dom.game.participantImage.classList.remove('loading');
+                };
+
+                showScreen('splash');
+            }
+
+            /**
+             * Resets the game state and starts a new game.
+             */
+            function startGame() {
+                console.log('--- NEW GAME ---');
+                
+                // Reset state
+                gameState.scores = { A: 0, B: 0 };
+                gameState.currentTurnIndex = 0;
+                gameState.isPaused = false;
+                gameState.currentFact = null;
+                gameState.isGameOver = false; 
+                gameState.gameDeck = [];
+                
+                // --- LOGIC CHANGE: Create deck in order, no shuffle ---
+                gameState.gameDeck = PARTICIPANTS.map(p => {
+                    const guessingTeam = (p.team === 'A') ? 'B' : 'A'; // If fact is about Team A, Team B guesses
+                    return { answer: p, guessingTeam: guessingTeam };
+                });
+                // --- End of logic change ---
+
+                if (gameState.gameDeck.length === 0) {
+                    console.error("Error: Not enough players in both teams to start the game.");
+                    return;
+                }
+                console.log(`Game deck created with ${gameState.gameDeck.length} facts (in order).`);
+
+                // --- MANUALLY HIDE POP-UPS ---
+                // This is crucial for "Play Again"
+                dom.screens.gameover.classList.remove('active');
+                dom.screens.pause.classList.remove('active');
+                // --- End of change ---
+
+                // Start game
+                updateScoreboard();
+                displayNextFact(); // Call the new function
+                
+                showScreen('game'); // Show the main game screen
+                
+                playAudio(dom.audio.bgMusic);
+                dom.audio.bgMusic.loop = true;
+            }
+
+            /**
+             * NEW Function: Replaces old `nextTurn` and `updateTurnInfo`
+             * Displays the fact for the current turn index.
+             */
+            function displayNextFact() {
+                // 1. Get the data for the current turn
+                const turnData = gameState.gameDeck[gameState.currentTurnIndex];
+                
+                // 2. Store the answer for the 'reveal' function
+                gameState.currentFact = turnData.answer;
+                
+                // 3. Update UI
+                dom.game.factText.textContent = gameState.currentFact.fact;
+                dom.game.turnInfo.textContent = `Team ${turnData.guessingTeam}'s Turn to Guess!`;
+
+                // 4. Reset views
+                dom.game.participantImage.classList.add('loading');
+                dom.game.participantImage.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; 
+                dom.game.participantName.textContent = "Loading..."; 
+                dom.game.participantTeam.textContent = " ";
+
+                // 5. Show fact, hide answer
+                dom.game.answerView.classList.add('hidden');
+                dom.game.answerView.setAttribute('aria-hidden', 'true');
+                dom.game.factView.classList.remove('hidden');
+                dom.game.factView.setAttribute('aria-hidden', 'false');
+                
+                // 6. Arm the guess buttons
+                gameState.isGuessPending = true; 
+            }
+
+
+            /**
+             * Handles the host's guess (correct or wrong), updates score, 
+             * and checks if the game is over.
+             */
+            function handleGuess(isCorrect) {
+                // 1. Guard against game over or multiple clicks
+                if (gameState.isGameOver || !gameState.isGuessPending) {
+                    return;
+                }
+                
+                // 2. Disarm buttons immediately
+                gameState.isGuessPending = false; 
+
+                // 3. Get the current turn data to know who was guessing
+                const currentTurn = gameState.gameDeck[gameState.currentTurnIndex];
+
+                // 4. Apply score and audio
+                if (isCorrect) {
+                    playAudio(dom.audio.correctSfx);
+                    gameState.scores[currentTurn.guessingTeam]++;
+                } else {
+                    playAudio(dom.audio.wrongSfx);
+                }
+                
+                // 5. Update scoreboard UI
+                updateScoreboard();
+
+                // 6. Increment turn index
+                gameState.currentTurnIndex++;
+                console.log(`Fact ${gameState.currentTurnIndex} / ${gameState.gameDeck.length} played.`);
+                
+                // 7. Check for Game Over
+                if (gameState.currentTurnIndex >= gameState.gameDeck.length) {
+                    console.log("Final fact played. Calling endGame...");
+                    endGame(true); // Pass 'true' to indicate 10-second delay
+                } else {
+                    // Give a brief moment for the sound to play
+                    console.log("More facts remaining. Calling displayNextFact...");
+                    setTimeout(displayNextFact, 300);
+                }
+            }
+
+            /**
+             * Reveals the answer (participant) for the current fact.
+             */
+            function revealAnswer() {
+                // This guard now correctly blocks running if the game is over,
+                // if there's no fact, OR if the fact view is ALREADY hidden.
+                if (gameState.isGameOver || !gameState.currentFact || dom.game.factView.classList.contains('hidden')) {
+                    return;
+                }
+                
+                playAudio(dom.audio.revealSfx);
+
+                // Set onload *before* src to handle loading
+                dom.game.participantImage.onload = () => {
+                    dom.game.participantImage.classList.remove('loading');
+                };
+                dom.game.participantImage.src = gameState.currentFact.image;
+                
+                dom.game.participantName.textContent = gameState.currentFact.name;
+                dom.game.participantTeam.textContent = "Team " + gameState.currentFact.team;
+
+                // Show answer view, hide fact view
+                dom.game.factView.classList.add('hidden');
+                dom.game.factView.setAttribute('aria-hidden', 'true');
+                dom.game.answerView.classList.remove('hidden');
+                dom.game.answerView.setAttribute('aria-hidden', 'false');
+            }
+
+
+            /**
+             * Ends the game, stops music, and displays the final winner and scores.
+             * This function is now safe to be called at any time.
+             * @param {boolean} [useDelay=false] - Whether to use the 10-second delay.
+             */
+            function endGame(useDelay = false) {
+                console.log('--- GAME OVER ---');
+                
+                if (gameState.isGameOver) {
+                    console.warn("endGame called more than once.");
+                    return;
+                }
+                
+                gameState.isGameOver = true;
+                
+                try {
+                    dom.audio.bgMusic.pause();
+                    dom.audio.bgMusic.currentTime = 0;
+                } catch (e) {
+                    console.warn("Audio pause/reset failed:", e.message);
+                }
+
+                // Determine winner
+                if (gameState.scores.A > gameState.scores.B) {
+                    dom.gameover.winnerText.textContent = "Team A Wins!";
+                } else if (gameState.scores.B > gameState.scores.A) {
+                    dom.gameover.winnerText.textContent = "Team B Wins!";
+                } else {
+                    dom.gameover.winnerText.textContent = "It's a Tie!";
+                }
+
+                // Display final scores
+                dom.gameover.finalScoreA.textContent = gameState.scores.A;
+                dom.gameover.finalScoreB.textContent = gameState.scores.B;
+                
+                // --- REWRITTEN LOGIC with 10-second delay ---
+                
+                const showPopUp = () => {
+                    console.log("Displaying game over pop-up.");
+                    // We only ADD the active class. We don't remove any others.
+                    dom.screens.gameover.classList.add('active');
+                };
+
+                if (useDelay) {
+                    console.log("Game has ended. Waiting 10 seconds to show pop-up...");
+                    setTimeout(showPopUp, 10000); // 10,000 milliseconds = 10 seconds
+                } else {
+                    console.log("End Game button pressed. Showing pop-up immediately.");
+                    showPopUp(); // Show immediately if 'End Game' button was pressed
+                }
+            }
+
+            // --- 6. UI Update & Handlers ---
+
+            /**
+             * Updates the scoreboard UI from the game state.
+             */
+            function updateScoreboard() {
+                dom.game.teamAScore.textContent = `Team A: ${gameState.scores.A}`;
+                dom.game.teamBScore.textContent = `Team B: ${gameState.scores.B}`;
+            }
+            
+            /**
+             * Toggles the game's paused state (now a pop-up).
+             */
+            function togglePause() {
+                // Can't pause if game is over
+                if (gameState.isGameOver || gameState.currentScreen !== 'game') return;
+                
+                gameState.isPaused = !gameState.isPaused;
+                if (gameState.isPaused) {
+                    // Show the pause overlay
+                    dom.screens.pause.classList.add('active');
+                    dom.buttons.pause.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
+                    dom.buttons.pause.title = "Resume (P)";
+                    dom.audio.bgMusic.pause();
+                } else {
+                    // Hide the pause overlay
+                    dom.screens.pause.classList.remove('active');
+                    dom.buttons.pause.innerHTML = '<span class="material-symbols-outlined">pause</span>';
+                    dom.buttons.pause.title = "Pause (P)";
+                    playAudio(dom.audio.bgMusic);
+                }
+            }
+
+            /**
+             * Toggles the game's muted state.
+             */
+            function toggleMute() {
+                gameState.isMuted = !gameState.isMuted;
+                dom.buttons.mute.innerHTML = `<span class="material-symbols-outlined">${gameState.isMuted ? 'volume_off' : 'volume_up'}</span>`;
+                dom.buttons.mute.title = gameState.isMuted ? "Unmute" : "Mute";
+                dom.audio.bgMusic.muted = gameState.isMuted; 
+            }
+
+            /**
+             * Handles global keydown events for host controls.
+             */
+            function handleKeydown(e) {
+                // Ignore keypresses in text inputs
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+
+                // Pause/Resume works on 'game' and 'pause' screens
+                if (e.key.toLowerCase() === 'p') {
+                    e.preventDefault();
+                    togglePause();
+                }
+
+                // Other controls only work if not paused and on the game screen
+                if (gameState.isGameOver || gameState.isPaused || gameState.currentScreen !== 'game') {
+                    return;
+                }
+
+                if (e.key.toLowerCase() === 'r') {
+                    e.preventDefault();
+                    dom.buttons.reveal.click();
+                }
+                
+                if (e.key.toLowerCase() === 'c') {
+                    e.preventDefault();
+                    dom.buttons.correct.click();
+                }
+                
+                if (e.key.toLowerCase() === 'w') {
+                    e.preventDefault();
+                    dom.buttons.wrong.click();
+                }
+            }
+
+            // --- 7. Start the game ---
+            init();
+        });
+    </script>
+</body>
+</html>
 
